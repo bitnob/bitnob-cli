@@ -43,3 +43,23 @@ jobs:
 
       - name: Build
         run: go build ./cmd/bitnob
+
+  install-smoke:
+    needs: test-and-build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install from release script
+        shell: bash
+        run: |
+          set -euo pipefail
+          INSTALL_DIR="${RUNNER_TEMP}/bin" VERSION="v0.1.1" bash ./scripts/install.sh
+          "${RUNNER_TEMP}/bin/bitnob" version
