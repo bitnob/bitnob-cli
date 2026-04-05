@@ -1,5 +1,8 @@
 # Bitnob CLI
 
+[![CI](https://github.com/bitnob/bitnob-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bitnob/bitnob-cli/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/bitnob/bitnob-cli)](https://github.com/bitnob/bitnob-cli/releases)
+
 Bitnob CLI is a command-line interface for Bitnob integrations and operations.
 
 It helps engineering teams:
