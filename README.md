@@ -9,11 +9,88 @@ It helps engineering teams:
 - run operational checks (`doctor`, `listen`, `wait`) during development and staging
 - script repeatable API workflows for testing and debugging
 
-## Installation Status
+## Install
 
-Packaged installers are not available yet.
+Install from GitHub Releases (current stable: `v0.1.1`).
 
-For now, run from source or build locally:
+Base URL:
+
+```bash
+https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1
+```
+
+### macOS (Apple Silicon)
+
+```bash
+curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_darwin_arm64.tar.gz
+tar -xzf bitnob.tar.gz
+sudo mv bitnob_0.1.1_darwin_arm64/bitnob /usr/local/bin/bitnob
+bitnob version
+```
+
+### macOS (Intel)
+
+```bash
+curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_darwin_amd64.tar.gz
+tar -xzf bitnob.tar.gz
+sudo mv bitnob_0.1.1_darwin_amd64/bitnob /usr/local/bin/bitnob
+bitnob version
+```
+
+### Linux (x86_64)
+
+```bash
+curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_linux_amd64.tar.gz
+tar -xzf bitnob.tar.gz
+sudo mv bitnob_0.1.1_linux_amd64/bitnob /usr/local/bin/bitnob
+bitnob version
+```
+
+### Linux (arm64)
+
+```bash
+curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_linux_arm64.tar.gz
+tar -xzf bitnob.tar.gz
+sudo mv bitnob_0.1.1_linux_arm64/bitnob /usr/local/bin/bitnob
+bitnob version
+```
+
+### Windows (PowerShell, x86_64)
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_windows_amd64.zip -OutFile bitnob.zip
+Expand-Archive bitnob.zip -DestinationPath .
+Move-Item .\bitnob_0.1.1_windows_amd64\bitnob.exe "$env:USERPROFILE\bin\bitnob.exe"
+$env:Path += ";$env:USERPROFILE\bin"
+bitnob version
+```
+
+### Verify checksums
+
+Download `checksums.txt` from the same release and verify before install:
+
+```bash
+curl -L -o checksums.txt https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/checksums.txt
+sha256sum -c checksums.txt
+```
+
+### Upgrade
+
+Repeat the install steps with the new version number and replace the existing binary.
+
+### Uninstall
+
+```bash
+sudo rm -f /usr/local/bin/bitnob
+```
+
+Optional local config/state cleanup:
+
+```bash
+rm -rf ~/.config/bitnob ~/.bitnob
+```
+
+### Build from source
 
 ```bash
 go run ./cmd/bitnob version
