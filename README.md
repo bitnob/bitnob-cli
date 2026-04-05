@@ -1,6 +1,24 @@
 # Bitnob CLI
 
-Bitnob CLI is a developer-focused command-line tool for API testing and integration workflows.
+Bitnob CLI is a command-line interface for Bitnob integrations and operations.
+
+It helps engineering teams:
+
+- authenticate and switch between environments/profiles
+- call Bitnob APIs quickly from terminal workflows
+- run operational checks (`doctor`, `listen`, `wait`) during development and staging
+- script repeatable API workflows for testing and debugging
+
+## Installation Status
+
+Packaged installers are not available yet.
+
+For now, run from source or build locally:
+
+```bash
+go run ./cmd/bitnob version
+go build ./cmd/bitnob
+```
 
 ## Commands
 
@@ -70,6 +88,19 @@ bash scripts/build.sh
 ```
 
 `scripts/build.sh` injects build metadata (`version`, `commit`, `date`) into the binary.
+
+## Production Releases
+
+Production releases are tag-driven through GitHub Actions.
+
+Create and push a semver tag:
+
+```bash
+git tag -a v0.1.0 -m "v0.1.0"
+git push origin v0.1.0
+```
+
+The release workflow builds multi-platform artifacts and publishes them with `checksums.txt` on GitHub Releases.
 
 ## Staging Smoke Suite
 
