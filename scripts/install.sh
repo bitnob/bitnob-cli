@@ -77,7 +77,9 @@ verify_checksum() {
   asset_file="$3"
 
   if command -v sha256sum >/dev/null 2>&1; then
-    grep " ${asset}\$" "$checksums_file" | sha256sum -c - >/dev/null
+    expected="$(grep " ${asset}\$" "$checksums_file" | awk '{print $1}' | head -n1)"
+    [ -n "$expected" ] || fail "could not find checksum entry for ${asset}"
+    printf '%s  %s\n' "$expected" "$asset_file" | sha256sum -c - >/dev/null
     return
   fi
 
@@ -112,7 +114,7 @@ main() {
   checksums_url="${release_base}/checksums.txt"
 
   tmp_dir="$(mktemp -d)"
-  trap 'rm -rf "$tmp_dir"' EXIT
+  trap "rm -rf '$tmp_dir'" EXIT
 
   checksums_file="${tmp_dir}/checksums.txt"
 
