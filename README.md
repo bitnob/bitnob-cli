@@ -15,7 +15,36 @@ It helps engineering teams:
 
 ## Install
 
-Install from GitHub Releases (current stable: `v0.1.1`).
+### Quick install (macOS/Linux)
+
+Install latest release:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bitnob/bitnob-cli/main/scripts/install.sh | bash
+```
+
+Install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bitnob/bitnob-cli/main/scripts/install.sh | VERSION=v0.1.1 bash
+```
+
+Install into a custom directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bitnob/bitnob-cli/main/scripts/install.sh | INSTALL_DIR="$HOME/bin" bash
+```
+
+The install script:
+
+- detects OS/architecture automatically (`darwin|linux`, `amd64|arm64`)
+- downloads artifacts from GitHub Releases
+- verifies `SHA-256` using `checksums.txt`
+- installs to `/usr/local/bin` when writable, otherwise `~/.local/bin`
+
+### Manual install from releases
+
+Current stable: `v0.1.1`
 
 Base URL:
 
@@ -23,7 +52,7 @@ Base URL:
 https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1
 ```
 
-### macOS (Apple Silicon)
+#### macOS (Apple Silicon)
 
 ```bash
 curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_darwin_arm64.tar.gz
@@ -32,7 +61,7 @@ sudo mv bitnob_0.1.1_darwin_arm64/bitnob /usr/local/bin/bitnob
 bitnob version
 ```
 
-### macOS (Intel)
+#### macOS (Intel)
 
 ```bash
 curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_darwin_amd64.tar.gz
@@ -41,7 +70,7 @@ sudo mv bitnob_0.1.1_darwin_amd64/bitnob /usr/local/bin/bitnob
 bitnob version
 ```
 
-### Linux (x86_64)
+#### Linux (x86_64)
 
 ```bash
 curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_linux_amd64.tar.gz
@@ -50,7 +79,7 @@ sudo mv bitnob_0.1.1_linux_amd64/bitnob /usr/local/bin/bitnob
 bitnob version
 ```
 
-### Linux (arm64)
+#### Linux (arm64)
 
 ```bash
 curl -L -o bitnob.tar.gz https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_linux_arm64.tar.gz
@@ -59,7 +88,7 @@ sudo mv bitnob_0.1.1_linux_arm64/bitnob /usr/local/bin/bitnob
 bitnob version
 ```
 
-### Windows (PowerShell, x86_64)
+#### Windows (PowerShell, x86_64)
 
 ```powershell
 Invoke-WebRequest -Uri https://github.com/bitnob/bitnob-cli/releases/download/v0.1.1/bitnob_0.1.1_windows_amd64.zip -OutFile bitnob.zip
@@ -69,7 +98,7 @@ $env:Path += ";$env:USERPROFILE\bin"
 bitnob version
 ```
 
-### Verify checksums
+#### Verify checksums
 
 Download `checksums.txt` from the same release and verify before install:
 
