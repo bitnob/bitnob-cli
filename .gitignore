@@ -1,0 +1,12 @@
+.DS_Store
+
+# Build artifacts
+bitnob
+
+# Go caches
+.gocache/
+.gomodcache/
+
+# Local temporary files
+*.tmp
+*.swp
