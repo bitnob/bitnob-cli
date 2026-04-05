@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/bitnob/bitnob-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bitnob/bitnob-cli/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/bitnob/bitnob-cli)](https://github.com/bitnob/bitnob-cli/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Bitnob CLI is a command-line interface for Bitnob integrations and operations.
 
@@ -11,10 +12,6 @@ It helps engineering teams:
 - call Bitnob APIs quickly from terminal workflows
 - run operational checks (`doctor`, `listen`, `wait`) during development and staging
 - script repeatable API workflows for testing and debugging
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, testing requirements, and PR expectations.
 
 ## Install
 
@@ -276,3 +273,7 @@ go run ./cmd/bitnob whoami
 go run ./cmd/bitnob shell --mode command
 go run ./cmd/bitnob help
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, testing requirements, and PR expectations.
