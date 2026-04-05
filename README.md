@@ -159,7 +159,3 @@ BITNOB_CLIENT_ID=your-client-id BITNOB_SECRET_KEY=your-secret-key go run ./cmd/b
 go run ./cmd/bitnob whoami
 go run ./cmd/bitnob help
 ```
-
-## Planning docs
-
-- `PROJECT_PLAN.md`
