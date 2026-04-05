@@ -61,6 +61,7 @@ func NewRootCommand(ctx context.Context, printer output.Printer, application *ap
 		newLoginCommand(printer, application),
 		newLogoutCommand(printer, application),
 		newPayoutsCommand(printer, application),
+		newShellCommand(printer, application),
 		newSwitchCommand(printer, application),
 		newTradingCommand(printer, application),
 		newTransfersCommand(printer, application),

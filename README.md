@@ -29,6 +29,7 @@ The CLI currently includes:
 - `bitnob whoami`
 - `bitnob logout`
 - `bitnob switch <profile>`
+- `bitnob shell --mode command`
 - `bitnob help`
 
 The CLI command layer is implemented with Cobra.
@@ -157,5 +158,6 @@ BITNOB_SECRET_KEY=your-secret-key go run ./cmd/bitnob login --interactive --clie
 go run ./cmd/bitnob login --profile live --interactive
 BITNOB_CLIENT_ID=your-client-id BITNOB_SECRET_KEY=your-secret-key go run ./cmd/bitnob login --profile sandbox
 go run ./cmd/bitnob whoami
+go run ./cmd/bitnob shell --mode command
 go run ./cmd/bitnob help
 ```

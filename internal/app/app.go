@@ -39,6 +39,7 @@ type Options struct {
 
 type App struct {
 	Version              version.Info
+	StateDir             string
 	StartupWarnings      []string
 	ConfigStore          *config.Store
 	ConfigService        *config.Service
@@ -119,6 +120,7 @@ func New(ctx context.Context, opts Options) (*App, error) {
 
 	return &App{
 		Version:              opts.Version,
+		StateDir:             stateDir,
 		StartupWarnings:      startupWarnings,
 		ConfigStore:          configStore,
 		ConfigService:        config.NewService(configStore),
