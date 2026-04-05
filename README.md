@@ -9,6 +9,10 @@ It helps engineering teams:
 - run operational checks (`doctor`, `listen`, `wait`) during development and staging
 - script repeatable API workflows for testing and debugging
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, testing requirements, and PR expectations.
+
 ## Install
 
 Install from GitHub Releases (current stable: `v0.1.1`).
