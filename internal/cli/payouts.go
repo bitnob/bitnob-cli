@@ -19,7 +19,11 @@ func newPayoutsCommand(printer output.Printer, application *app.App) *cobra.Comm
 
 	cmd.AddCommand(
 		newPayoutsQuotesCommand(printer, application),
+		newPayoutsListCommand(printer, application),
+		newPayoutsGetCommand(printer, application),
 		newPayoutsInitializeCommand(printer, application),
+		newPayoutsAccountLookupCommand(printer, application),
+		newPayoutsBanksCommand(printer, application),
 		newPayoutsBeneficiaryLookupCommand(printer, application),
 		newPayoutsSimulateDepositCommand(printer, application),
 		newPayoutsFetchCommand(printer, application),
@@ -103,6 +107,45 @@ func newPayoutsQuotesListCommand(printer output.Printer, application *app.App) *
 	cmd.Flags().IntVar(&page, "page", 0, "Page number")
 	cmd.Flags().IntVar(&take, "take", 0, "Results per page")
 	return cmd
+}
+
+func newPayoutsListCommand(printer output.Printer, application *app.App) *cobra.Command {
+	var status string
+	var limit int
+
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List payouts",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			response, err := application.PayoutsService.ListPayouts(cmd.Context(), status, limit)
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+		Args: cobra.NoArgs,
+		Example: strings.Join([]string{
+			"bitnob payouts list --status processing --limit 50",
+		}, "\n"),
+	}
+	cmd.Flags().StringVar(&status, "status", "", "Filter payouts by status")
+	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum payouts to return")
+	return cmd
+}
+
+func newPayoutsGetCommand(printer output.Printer, application *app.App) *cobra.Command {
+	return &cobra.Command{
+		Use:   "get <id>",
+		Short: "Get a payout by ID",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			response, err := application.PayoutsService.GetPayout(cmd.Context(), args[0])
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+	}
 }
 
 func newPayoutsQuotesGetCommand(printer output.Printer, application *app.App) *cobra.Command {
@@ -222,6 +265,46 @@ func newPayoutsBeneficiaryLookupCommand(printer output.Printer, application *app
 	cmd.Flags().StringVar(&input.BankCode, "bank-code", "", "Beneficiary bank code")
 	cmd.Flags().StringVar(&input.Type, "type", "", "Beneficiary destination type, for example bank_account")
 	return cmd
+}
+
+func newPayoutsAccountLookupCommand(printer output.Printer, application *app.App) *cobra.Command {
+	var input payouts.AccountLookupInput
+
+	cmd := &cobra.Command{
+		Use:   "account-lookup",
+		Short: "Lookup payout account details by country, bank code, and account number",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if input.Country == "" || input.BankCode == "" || input.AccountNumber == "" {
+				return fmt.Errorf("country, bank-code, and account-number are required")
+			}
+
+			response, err := application.PayoutsService.AccountLookup(cmd.Context(), input)
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+	}
+
+	cmd.Flags().StringVar(&input.Country, "country", "", "Two-letter country code")
+	cmd.Flags().StringVar(&input.BankCode, "bank-code", "", "Bank code")
+	cmd.Flags().StringVar(&input.AccountNumber, "account-number", "", "Account number")
+	return cmd
+}
+
+func newPayoutsBanksCommand(printer output.Printer, application *app.App) *cobra.Command {
+	return &cobra.Command{
+		Use:   "banks <country-code>",
+		Short: "List payout banks/providers for a country",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			response, err := application.PayoutsService.BanksByCountry(cmd.Context(), strings.ToUpper(strings.TrimSpace(args[0])))
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+	}
 }
 
 func newPayoutsSimulateDepositCommand(printer output.Printer, application *app.App) *cobra.Command {

@@ -56,10 +56,12 @@ func NewRootCommand(ctx context.Context, printer output.Printer, application *ap
 		newConfigCommand(printer, application),
 		newCustomersCommand(printer, application),
 		newDoctorCommand(printer, application),
+		newExchangeRatesCommand(printer, application),
 		newLightningCommand(printer, application),
 		newListenCommand(printer, application),
 		newLoginCommand(printer, application),
 		newLogoutCommand(printer, application),
+		newBulkTransfersCommand(printer, application),
 		newPayoutsCommand(printer, application),
 		newShellCommand(printer, application),
 		newSwitchCommand(printer, application),
@@ -70,6 +72,7 @@ func NewRootCommand(ctx context.Context, printer output.Printer, application *ap
 		newWalletsCommand(printer, application),
 		newWhoAmICommand(printer, application),
 		newVersionCommand(printer, application),
+		newWithdrawalsCommand(printer, application),
 	)
 
 	return root

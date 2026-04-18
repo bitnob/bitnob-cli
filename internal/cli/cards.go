@@ -20,9 +20,14 @@ func newCardsCommand(printer output.Printer, application *app.App) *cobra.Comman
 
 	cmd.AddCommand(
 		newCardsCreateCommand(printer, application),
+		newCardsEncryptionKeyCommand(printer, application),
 		newCardsGetCommand(printer, application),
 		newCardsDetailsCommand(printer, application),
 		newCardsListCommand(printer, application),
+		newCardsTeamMembersCommand(printer, application),
+		newCardsTransactionsCommand(printer, application),
+		newCardsBalanceCommand(printer, application),
+		newCardsStatusCommand(printer, application),
 		newCardsFundCommand(printer, application),
 		newCardsWithdrawCommand(printer, application),
 		newCardsFreezeCommand(printer, application),
@@ -92,6 +97,20 @@ func newCardsCreateCommand(printer output.Printer, application *app.App) *cobra.
 	return cmd
 }
 
+func newCardsEncryptionKeyCommand(printer output.Printer, application *app.App) *cobra.Command {
+	var data string
+
+	cmd := &cobra.Command{
+		Use:   "encryption-key",
+		Short: "Register card encryption key",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/cards/encryption-key", data)
+		},
+	}
+	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
+	return cmd
+}
+
 func newCardsGetCommand(printer output.Printer, application *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <card-id>",
@@ -118,6 +137,16 @@ func newCardsDetailsCommand(printer output.Printer, application *app.App) *cobra
 				return err
 			}
 			return printer.PrintJSON(response)
+		},
+	}
+}
+
+func newCardsTeamMembersCommand(printer output.Printer, application *app.App) *cobra.Command {
+	return &cobra.Command{
+		Use:   "team-members",
+		Short: "List team-member cards",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/team-members", "")
 		},
 	}
 }
@@ -190,6 +219,34 @@ func newCardsBalanceOperationCommand(printer output.Printer, application *app.Ap
 	cmd.Flags().StringVar(&input.Currency, "currency", "", "Currency for the operation")
 	cmd.Flags().StringVar(&input.Description, "description", "", "Description for the operation")
 	cmd.Flags().StringVar(&input.Reference, "reference", "", "Reference for idempotency and reconciliation")
+	return cmd
+}
+
+func newCardsBalanceCommand(printer output.Printer, application *app.App) *cobra.Command {
+	var data string
+	cmd := &cobra.Command{
+		Use:   "balance <card-id>",
+		Short: "Fund or withdraw balance using v2 balance endpoint",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/cards/"+args[0]+"/balance", data)
+		},
+	}
+	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
+	return cmd
+}
+
+func newCardsStatusCommand(printer output.Printer, application *app.App) *cobra.Command {
+	var data string
+	cmd := &cobra.Command{
+		Use:   "status <card-id>",
+		Short: "Freeze or unfreeze card using v2 status endpoint",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/cards/"+args[0]+"/status", data)
+		},
+	}
+	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
 	return cmd
 }
 
@@ -293,6 +350,37 @@ func newCardsCustomerCommand(printer output.Printer, application *app.App) *cobr
 			return printer.PrintJSON(response)
 		},
 	}
+}
+
+func newCardsTransactionsCommand(printer output.Printer, application *app.App) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transactions",
+		Short: "List card transactions",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/transactions", "")
+		},
+	}
+
+	cmd.AddCommand(
+		&cobra.Command{
+			Use:   "card <card-id>",
+			Short: "List transactions for a card",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/"+args[0]+"/transactions", "")
+			},
+		},
+		&cobra.Command{
+			Use:   "get <card-id> <transaction-id>",
+			Short: "Get single card transaction",
+			Args:  cobra.ExactArgs(2),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/"+args[0]+"/transactions/"+args[1], "")
+			},
+		},
+	)
+
+	return cmd
 }
 
 func stringsTitle(value string) string {

@@ -556,6 +556,49 @@ func TestTradingQuoteCreate(t *testing.T) {
 	}
 }
 
+func TestTradingQuoteCreateFromQuoteAmount(t *testing.T) {
+	application := newTestApp(t)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	printer := output.New(stdout, stderr)
+	ctx := context.Background()
+
+	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
+		t.Fatalf("login returned error: %v", err)
+	}
+
+	stdout.Reset()
+	err := runWithPrinter(ctx, printer, application, []string{"trading", "quotes", "create", "--base-currency", "BTC", "--quote-currency", "USDT", "--side", "buy", "--quote-amount", "6.878995"})
+	if err != nil {
+		t.Fatalf("trading quotes create from quote amount returned error: %v", err)
+	}
+
+	if got := stdout.String(); !strings.Contains(got, `"id": "quote_123"`) {
+		t.Fatalf("unexpected trading quote output from quote amount: %q", got)
+	}
+}
+
+func TestTradingQuoteCreateRejectsQuantityAndQuoteAmount(t *testing.T) {
+	application := newTestApp(t)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	printer := output.New(stdout, stderr)
+	ctx := context.Background()
+
+	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
+		t.Fatalf("login returned error: %v", err)
+	}
+
+	stdout.Reset()
+	err := runWithPrinter(ctx, printer, application, []string{"trading", "quotes", "create", "--base-currency", "BTC", "--quote-currency", "USDT", "--side", "buy", "--quantity", "0.0001", "--quote-amount", "6.878995"})
+	if err == nil {
+		t.Fatal("expected trading quotes create to fail when both quantity and quote-amount are provided")
+	}
+	if !strings.Contains(err.Error(), "provide exactly one of") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestTradingOrderCreate(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}
@@ -1401,6 +1444,115 @@ func TestListenStartup(t *testing.T) {
 	}
 }
 
+func TestNewCommandSurfaces(t *testing.T) {
+	application := newTestApp(t)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	printer := output.New(stdout, stderr)
+	ctx := context.Background()
+
+	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
+		t.Fatalf("login returned error: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		args     []string
+		contains string
+	}{
+		{"exchange rates get", []string{"exchange-rates", "get", "--from", "USDT", "--to", "NGN"}, `"rate": "1500"`},
+		{"exchange rates convert", []string{"exchange-rates", "convert", "--from", "USDT", "--to", "NGN", "--amount", "100"}, `"rate": "1500"`},
+		{"withdrawals create", []string{"withdrawals", "create", "--data", `{"amount":"1"}`}, `"Withdrawal initiated successfully"`},
+		{"customers countries", []string{"customers", "countries"}, `"countries"`},
+		{"customers country states", []string{"customers", "countries", "states", "NG"}, `"Lagos"`},
+		{"trading quote get", []string{"trading", "quotes", "get", "quote_123"}, `"id": "quote_123"`},
+		{"trading order cancel", []string{"trading", "orders", "cancel", "order_123"}, `"cancelled"`},
+		{"trading price get pair", []string{"trading", "prices", "get", "BTC-USDT"}, `"base_currency": "BTC"`},
+		{"trading scheduled create", []string{"trading", "scheduled-orders", "create", "--data", `{"pair":"BTC-USDT"}`}, `"Trading automation request handled"`},
+		{"trading scheduled list", []string{"trading", "scheduled-orders", "list"}, `"Trading automation request handled"`},
+		{"trading scheduled get", []string{"trading", "scheduled-orders", "get", "sched_1"}, `"Trading automation request handled"`},
+		{"trading scheduled update", []string{"trading", "scheduled-orders", "update", "sched_1", "--data", `{"enabled":true}`}, `"Trading automation request handled"`},
+		{"trading scheduled cancel", []string{"trading", "scheduled-orders", "cancel", "sched_1"}, `"Trading automation request handled"`},
+		{"trading scheduled executions", []string{"trading", "scheduled-orders", "executions", "sched_1"}, `"Trading automation request handled"`},
+		{"trading target create", []string{"trading", "target-orders", "create", "--data", `{"pair":"BTC-USDT"}`}, `"Trading automation request handled"`},
+		{"trading target list", []string{"trading", "target-orders", "list", "--status", "active", "--limit", "10"}, `"Trading automation request handled"`},
+		{"trading target get", []string{"trading", "target-orders", "get", "target_1"}, `"Trading automation request handled"`},
+		{"trading target cancel", []string{"trading", "target-orders", "cancel", "target_1"}, `"Trading automation request handled"`},
+		{"cards encryption key", []string{"cards", "encryption-key", "--data", `{"public_key":"test"}`}, `"Encryption key registered"`},
+		{"cards team members", []string{"cards", "team-members"}, `"Team-member cards retrieved"`},
+		{"cards transactions list", []string{"cards", "transactions"}, `"Card transactions retrieved"`},
+		{"cards transactions by card", []string{"cards", "transactions", "card", "card_123"}, `"Card transactions retrieved"`},
+		{"cards single transaction", []string{"cards", "transactions", "get", "card_123", "tx_123"}, `"Card transaction retrieved"`},
+		{"cards balance endpoint", []string{"cards", "balance", "card_123", "--data", `{"operation":"fund","amount":"100"}`}, `"Card balance updated"`},
+		{"cards status endpoint", []string{"cards", "status", "card_123", "--data", `{"status":"frozen"}`}, `"Card status updated"`},
+		{"payouts account lookup", []string{"payouts", "account-lookup", "--country", "NG", "--bank-code", "058", "--account-number", "0123456789"}, `"Account lookup successful"`},
+		{"payouts banks", []string{"payouts", "banks", "NG"}, `"OPay"`},
+		{"payouts list", []string{"payouts", "list", "--status", "processing", "--limit", "50"}, `"payouts"`},
+		{"payouts get", []string{"payouts", "get", "payout_123"}, `"payout_123"`},
+		{"bulk batches create", []string{"bulk-transfers", "batches", "create", "--data", `{"name":"batch"}`}, `"Bulk transfer request handled"`},
+		{"bulk batches upload urls", []string{"bulk-transfers", "batches", "upload-urls", "--data", `{"filename":"batch.csv"}`}, `"Bulk transfer request handled"`},
+		{"bulk batches preview", []string{"bulk-transfers", "batches", "preview", "--data", `{"file_id":"f1"}`}, `"Bulk transfer request handled"`},
+		{"bulk batches list", []string{"bulk-transfers", "batches", "list"}, `"Bulk transfer request handled"`},
+		{"bulk batches get", []string{"bulk-transfers", "batches", "get", "batch_1"}, `"Bulk transfer request handled"`},
+		{"bulk batches confirm", []string{"bulk-transfers", "batches", "confirm", "batch_1", "--data", `{"confirm":true}`}, `"Bulk transfer request handled"`},
+		{"bulk batches retry", []string{"bulk-transfers", "batches", "retry", "batch_1", "--data", `{"retry_failed":true}`}, `"Bulk transfer request handled"`},
+		{"bulk schedules create", []string{"bulk-transfers", "schedules", "create", "--data", `{"name":"sched"}`}, `"Bulk transfer request handled"`},
+		{"bulk schedules list", []string{"bulk-transfers", "schedules", "list"}, `"Bulk transfer request handled"`},
+		{"bulk schedules update", []string{"bulk-transfers", "schedules", "update", "sched_1", "--data", `{"enabled":true}`}, `"Bulk transfer request handled"`},
+		{"bulk schedules cancel", []string{"bulk-transfers", "schedules", "cancel", "sched_1"}, `"Bulk transfer request handled"`},
+		{"bulk schedules executions", []string{"bulk-transfers", "schedules", "executions", "sched_1"}, `"Bulk transfer request handled"`},
+		{"bulk executions retry", []string{"bulk-transfers", "executions", "retry", "exec_1", "--data", `{"retry_failed":true}`}, `"Bulk transfer request handled"`},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout.Reset()
+			if err := runWithPrinter(ctx, printer, application, tc.args); err != nil {
+				t.Fatalf("command returned error: %v", err)
+			}
+			if got := stdout.String(); !strings.Contains(got, tc.contains) {
+				t.Fatalf("unexpected output: %q", got)
+			}
+		})
+	}
+}
+
+func TestNewCommandValidation(t *testing.T) {
+	application := newTestApp(t)
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	printer := output.New(stdout, stderr)
+	ctx := context.Background()
+
+	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
+		t.Fatalf("login returned error: %v", err)
+	}
+
+	tests := []struct {
+		name        string
+		args        []string
+		containsErr string
+	}{
+		{"invalid raw json", []string{"withdrawals", "create", "--data", "{bad-json"}, "request body must be valid JSON"},
+		{"payouts account lookup missing flag", []string{"payouts", "account-lookup", "--country", "NG"}, "country, bank-code, and account-number are required"},
+		{"payouts banks missing arg", []string{"payouts", "banks"}, "accepts 1 arg"},
+		{"trading scheduled update missing id", []string{"trading", "scheduled-orders", "update"}, "accepts 1 arg"},
+		{"cards transactions get missing args", []string{"cards", "transactions", "get", "card_123"}, "accepts 2 arg"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := runWithPrinter(ctx, printer, application, tc.args)
+			if err == nil {
+				t.Fatal("expected error, got nil")
+			}
+			if !strings.Contains(err.Error(), tc.containsErr) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func newTestApp(t *testing.T) *app.App {
 	t.Helper()
 
@@ -1893,7 +2045,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/cards/card_123/details" && req.Method == http.MethodGet {
+		if req.URL.Path == "/api/cards/card_123/secure" && req.Method == http.MethodGet {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
@@ -2128,7 +2280,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/lightning/payments/initiate" && req.Method == http.MethodPost {
+		if req.URL.Path == "/api/lightning/preview" && req.Method == http.MethodPost {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
@@ -2155,7 +2307,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/lightning/payments/send" && req.Method == http.MethodPost {
+		if req.URL.Path == "/api/lightning/pay" && req.Method == http.MethodPost {
 			return &http.Response{
 				StatusCode: http.StatusCreated,
 				Status:     "201 Created",
@@ -2383,7 +2535,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/stablecoins/supported-chains" && req.Method == http.MethodGet {
+		if req.URL.Path == "/api/addresses/supported-chains" && req.Method == http.MethodGet {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
@@ -2444,7 +2596,7 @@ func newTestApp(t *testing.T) *app.App {
 			if err != nil {
 				return nil, err
 			}
-			if !strings.Contains(string(body), `"base_currency":"BTC"`) || !strings.Contains(string(body), `"quote_currency":"USDT"`) || !strings.Contains(string(body), `"side":"buy"`) || !strings.Contains(string(body), `"quantity":"0.0001"`) {
+			if !strings.Contains(string(body), `"base_currency":"BTC"`) || !strings.Contains(string(body), `"quote_currency":"USDT"`) || !strings.Contains(string(body), `"side":"buy"`) || !strings.Contains(string(body), `"quantity":"`) {
 				return &http.Response{
 					StatusCode: http.StatusBadRequest,
 					Status:     "400 Bad Request",
@@ -2710,7 +2862,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/payouts/quotes/QT_6158/initialize" && req.Method == http.MethodPost {
+		if req.URL.Path == "/api/payouts/QT_6158/initialize" && req.Method == http.MethodPost {
 			body, err := io.ReadAll(req.Body)
 			if err != nil {
 				return nil, err
@@ -2916,6 +3068,223 @@ func newTestApp(t *testing.T) *app.App {
 				}`)),
 				Header:  make(http.Header),
 				Request: req,
+			}, nil
+		}
+		if strings.HasPrefix(req.URL.Path, "/api/exchange-rates") && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "Exchange rates retrieved successfully",
+					"data": {
+						"from": "USDT",
+						"to": "NGN",
+						"rate": "1500"
+					}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if req.URL.Path == "/api/withdrawals" && req.Method == http.MethodPost {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "Withdrawal initiated successfully",
+					"data": {"id":"withdrawal_123","status":"pending"}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if strings.HasPrefix(req.URL.Path, "/api/bulk-transfers") {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "Bulk transfer request handled",
+					"data": {"id":"batch_123","status":"ok"}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if req.URL.Path == "/api/customers/countries" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "Countries retrieved successfully",
+					"data": {"countries":[{"code":"NG","name":"Nigeria"}]}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if req.URL.Path == "/api/customers/countries/NG/states" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "States retrieved successfully",
+					"data": {"states":[{"code":"LA","name":"Lagos"}]}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if req.URL.Path == "/api/trading/quotes/quote_123" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body: io.NopCloser(strings.NewReader(`{
+					"success": true,
+					"message": "Quote retrieved successfully",
+					"data": {"quote":{"id":"quote_123","base_currency":"BTC","quote_currency":"USDT","side":"BUY","quantity":"0.0001","price":"70000","exchange":{"send_quantity":"7","send_currency":"USDT","receive_quantity":"0.0001","receive_currency":"BTC"}}}
+				}`)),
+				Header:  make(http.Header),
+				Request: req,
+			}, nil
+		}
+		if req.URL.Path == "/api/trading/orders/order_123" && req.Method == http.MethodDelete {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Order cancelled successfully","data":{"order":{"id":"order_123","status":"cancelled"}}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/trading/prices/BTC-USDT" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Price retrieved successfully","data":{"prices":[{"base_currency":"BTC","quote_currency":"USDT","price":"70000","as_of":"2026-04-18T10:00:00Z"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if strings.HasPrefix(req.URL.Path, "/api/trading/scheduled-orders") || strings.HasPrefix(req.URL.Path, "/api/trading/target-orders") {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Trading automation request handled","data":{"id":"auto_123","status":"ok"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/encryption-key" && req.Method == http.MethodPost {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Encryption key registered","data":{"status":"ok"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/team-members" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Team-member cards retrieved","data":{"cards":[{"id":"card_123"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/transactions" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card transactions retrieved","data":{"transactions":[{"id":"ctx_123"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/card_123/transactions" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card transactions retrieved","data":{"transactions":[{"id":"ctx_123"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/card_123/transactions/tx_123" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card transaction retrieved","data":{"transaction":{"id":"tx_123"}}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/card_123/balance" && req.Method == http.MethodPost {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card balance updated","data":{"card_id":"card_123"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/card_123/status" && req.Method == http.MethodPost {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card status updated","data":{"card_id":"card_123","status":"frozen"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/cards/card_123" && req.Method == http.MethodDelete {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Card terminated","data":{"card_id":"card_123"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/payouts/account-lookup" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Account lookup successful","data":{"account_name":"Ada Okafor","account_number":"0123456789","bank_code":"058"}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/payouts/banks/NG" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Banks retrieved successfully","data":{"banks":[{"code":"000014","name":"OPay"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/payouts" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Payouts retrieved successfully","data":{"payouts":[{"id":"payout_123","status":"processing"}]}}`)),
+				Header:     make(http.Header),
+				Request:    req,
+			}, nil
+		}
+		if req.URL.Path == "/api/payouts/payout_123" && req.Method == http.MethodGet {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Status:     "200 OK",
+				Body:       io.NopCloser(strings.NewReader(`{"success":true,"message":"Payout retrieved successfully","data":{"payout":{"id":"payout_123","status":"processing"}}}`)),
+				Header:     make(http.Header),
+				Request:    req,
 			}, nil
 		}
 		if req.URL.Path != "/api/balances" {

@@ -63,6 +63,15 @@ type CustomerListData struct {
 	Meta      CustomerListMeta `json:"meta"`
 }
 
+type CountriesResponse struct {
+	Success   *bool         `json:"success,omitempty"`
+	Status    *bool         `json:"status,omitempty"`
+	Message   string        `json:"message"`
+	Data      any           `json:"data"`
+	Metadata  *ResponseMeta `json:"metadata,omitempty"`
+	Timestamp string        `json:"timestamp,omitempty"`
+}
+
 type CustomerListMeta struct {
 	Page            int  `json:"page"`
 	Take            int  `json:"take"`
@@ -200,6 +209,34 @@ func (s *Service) Blacklist(ctx context.Context, id string, blacklist bool) (Cus
 	var response CustomerResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		return CustomerResponse{}, fmt.Errorf("decode blacklist customer response: %w", err)
+	}
+
+	return response, nil
+}
+
+func (s *Service) ListCountries(ctx context.Context) (CountriesResponse, error) {
+	body, err := s.do(ctx, "GET", "/api/customers/countries", nil)
+	if err != nil {
+		return CountriesResponse{}, err
+	}
+
+	var response CountriesResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return CountriesResponse{}, fmt.Errorf("decode customer countries response: %w", err)
+	}
+
+	return response, nil
+}
+
+func (s *Service) ListStatesByCountry(ctx context.Context, countryCode string) (CountriesResponse, error) {
+	body, err := s.do(ctx, "GET", "/api/customers/countries/"+url.PathEscape(countryCode)+"/states", nil)
+	if err != nil {
+		return CountriesResponse{}, err
+	}
+
+	var response CountriesResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return CountriesResponse{}, fmt.Errorf("decode customer states response: %w", err)
 	}
 
 	return response, nil

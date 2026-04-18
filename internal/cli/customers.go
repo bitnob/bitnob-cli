@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bitnob/bitnob-cli/internal/app"
 	"github.com/bitnob/bitnob-cli/internal/customers"
@@ -16,6 +17,7 @@ func newCustomersCommand(printer output.Printer, application *app.App) *cobra.Co
 	}
 
 	cmd.AddCommand(
+		newCustomersCountriesCommand(printer, application),
 		newCustomersListCommand(printer, application),
 		newCustomersGetCommand(printer, application),
 		newCustomersCreateCommand(printer, application),
@@ -25,6 +27,38 @@ func newCustomersCommand(printer output.Printer, application *app.App) *cobra.Co
 	)
 
 	return cmd
+}
+
+func newCustomersCountriesCommand(printer output.Printer, application *app.App) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "countries",
+		Short: "List supported customer countries",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			response, err := application.CustomersService.ListCountries(cmd.Context())
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+	}
+
+	cmd.AddCommand(newCustomersCountryStatesCommand(printer, application))
+	return cmd
+}
+
+func newCustomersCountryStatesCommand(printer output.Printer, application *app.App) *cobra.Command {
+	return &cobra.Command{
+		Use:   "states <country-code>",
+		Short: "List states for a customer country",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			response, err := application.CustomersService.ListStatesByCountry(cmd.Context(), strings.ToUpper(strings.TrimSpace(args[0])))
+			if err != nil {
+				return err
+			}
+			return printer.PrintJSON(response)
+		},
+	}
 }
 
 func newCustomersListCommand(printer output.Printer, application *app.App) *cobra.Command {

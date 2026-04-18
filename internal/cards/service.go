@@ -241,7 +241,7 @@ func (s *Service) Get(ctx context.Context, cardID string) (Response, error) {
 
 func (s *Service) GetDetails(ctx context.Context, cardID string) (DetailsResponse, error) {
 	var response DetailsResponse
-	err := s.doJSON(ctx, "GET", "/api/cards/"+url.PathEscape(cardID)+"/details", nil, &response)
+	err := s.doJSON(ctx, "GET", "/api/cards/"+url.PathEscape(cardID)+"/secure", nil, &response)
 	return response, err
 }
 
@@ -287,19 +287,19 @@ func (s *Service) Withdraw(ctx context.Context, cardID string, input FundWithdra
 
 func (s *Service) Freeze(ctx context.Context, cardID string, input ReasonInput) (FreezeResponse, error) {
 	var response FreezeResponse
-	err := s.doJSON(ctx, "POST", "/api/cards/"+url.PathEscape(cardID)+"/freeze", input, &response)
+	err := s.doJSON(ctx, "POST", "/api/cards/"+url.PathEscape(cardID)+"/status", input, &response)
 	return response, err
 }
 
 func (s *Service) Unfreeze(ctx context.Context, cardID string) (FreezeResponse, error) {
 	var response FreezeResponse
-	err := s.doJSON(ctx, "POST", "/api/cards/"+url.PathEscape(cardID)+"/unfreeze", nil, &response)
+	err := s.doJSON(ctx, "POST", "/api/cards/"+url.PathEscape(cardID)+"/status", map[string]string{"status": "active"}, &response)
 	return response, err
 }
 
 func (s *Service) Terminate(ctx context.Context, cardID string, input ReasonInput) (TerminateResponse, error) {
 	var response TerminateResponse
-	err := s.doJSON(ctx, "POST", "/api/cards/"+url.PathEscape(cardID)+"/terminate", input, &response)
+	err := s.doJSON(ctx, "DELETE", "/api/cards/"+url.PathEscape(cardID), nil, &response)
 	return response, err
 }
 

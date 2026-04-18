@@ -214,13 +214,13 @@ func (s *Service) Decode(ctx context.Context, input DecodeInput) (DecodeResponse
 
 func (s *Service) InitiatePayment(ctx context.Context, input InitiatePaymentInput) (InitiatePaymentResponse, error) {
 	var response InitiatePaymentResponse
-	err := s.doJSON(ctx, "POST", "/api/lightning/payments/initiate", input, &response)
+	err := s.doJSON(ctx, "POST", "/api/lightning/preview", input, &response)
 	return response, err
 }
 
 func (s *Service) SendPayment(ctx context.Context, input SendPaymentInput) (SendPaymentResponse, error) {
 	var response SendPaymentResponse
-	err := s.doJSON(ctx, "POST", "/api/lightning/payments/send", input, &response)
+	err := s.doJSON(ctx, "POST", "/api/lightning/pay", input, &response)
 	return response, err
 }
 

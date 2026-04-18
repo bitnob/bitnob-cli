@@ -70,14 +70,16 @@ type QuoteResponse struct {
 }
 
 type QuoteData struct {
-	Quote Quote `json:"quote"`
+	Quote  *Quote `json:"quote,omitempty"`
+	Payout *Quote `json:"payout,omitempty"`
 }
 
 type QuoteListResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Data    struct {
-		OffRamps []Quote        `json:"off_ramps"`
+		OffRamps []Quote        `json:"off_ramps,omitempty"`
+		Payouts  []Quote        `json:"payouts,omitempty"`
 		Meta     PaginationMeta `json:"meta,omitempty"`
 	} `json:"data"`
 	Metadata  ResponseMeta `json:"metadata,omitempty"`
@@ -88,7 +90,9 @@ type QuoteFetchResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Data    struct {
-		OffRamps []Quote `json:"off_ramps"`
+		OffRamps []Quote `json:"off_ramps,omitempty"`
+		Quote    *Quote  `json:"quote,omitempty"`
+		Payout   *Quote  `json:"payout,omitempty"`
 	} `json:"data"`
 	Metadata  ResponseMeta `json:"metadata,omitempty"`
 	Timestamp string       `json:"timestamp,omitempty"`
@@ -126,9 +130,37 @@ type InitializeInput struct {
 }
 
 type InitializeResponse struct {
+	Status    string         `json:"status"`
+	Message   string         `json:"message"`
+	Data      InitializeData `json:"data"`
+	Metadata  ResponseMeta   `json:"metadata,omitempty"`
+	Timestamp string         `json:"timestamp,omitempty"`
+}
+
+type InitializeData struct {
+	Quote
+	Payout *Quote `json:"payout,omitempty"`
+	Quoted *Quote `json:"quote,omitempty"`
+}
+
+type AccountLookupInput struct {
+	Country       string
+	BankCode      string
+	AccountNumber string
+}
+
+type AccountLookupResponse struct {
 	Status    string       `json:"status"`
 	Message   string       `json:"message"`
-	Data      Quote        `json:"data"`
+	Data      any          `json:"data"`
+	Metadata  ResponseMeta `json:"metadata,omitempty"`
+	Timestamp string       `json:"timestamp,omitempty"`
+}
+
+type BanksByCountryResponse struct {
+	Status    string       `json:"status"`
+	Message   string       `json:"message"`
+	Data      any          `json:"data"`
 	Metadata  ResponseMeta `json:"metadata,omitempty"`
 	Timestamp string       `json:"timestamp,omitempty"`
 }
@@ -230,7 +262,7 @@ func (s *Service) CreateQuote(ctx context.Context, input CreateQuoteInput) (Quot
 
 func (s *Service) Initialize(ctx context.Context, quoteID string, input InitializeInput) (InitializeResponse, error) {
 	var response InitializeResponse
-	err := s.doJSON(ctx, "POST", "/api/payouts/quotes/"+url.PathEscape(quoteID)+"/initialize", input, &response)
+	err := s.doJSON(ctx, "POST", "/api/payouts/"+url.PathEscape(quoteID)+"/initialize", input, &response)
 	return response, err
 }
 
@@ -248,7 +280,7 @@ func (s *Service) SimulateDeposit(ctx context.Context, input SimulateDepositInpu
 
 func (s *Service) Finalize(ctx context.Context, quoteID string) (InitializeResponse, error) {
 	var response InitializeResponse
-	err := s.doJSON(ctx, "POST", "/api/payouts/quotes/"+url.PathEscape(quoteID)+"/finalize", nil, &response)
+	err := s.doJSON(ctx, "POST", "/api/payouts/"+url.PathEscape(quoteID)+"/finalize", nil, &response)
 	return response, err
 }
 
@@ -263,7 +295,7 @@ func (s *Service) ListQuotes(ctx context.Context, order string, page int, take i
 	if take > 0 {
 		query.Set("take", strconv.Itoa(take))
 	}
-	path := "/api/payouts/"
+	path := "/api/payouts"
 	if encoded := query.Encode(); encoded != "" {
 		path += "?" + encoded
 	}
@@ -293,7 +325,7 @@ func (s *Service) GetQuoteByReference(ctx context.Context, reference string) (Qu
 
 func (s *Service) CountryRequirements(ctx context.Context, countryCode string) (CountryRequirementsResponse, error) {
 	var response CountryRequirementsResponse
-	err := s.doJSON(ctx, "GET", "/api/payouts/supported-countries/"+url.PathEscape(countryCode)+"/requirements", nil, &response)
+	err := s.doJSON(ctx, "GET", "/api/payouts/supported-countries/"+url.PathEscape(countryCode), nil, &response)
 	return response, err
 }
 
@@ -306,6 +338,49 @@ func (s *Service) SupportedCountries(ctx context.Context) (CountriesResponse, er
 func (s *Service) Limits(ctx context.Context) (LimitsResponse, error) {
 	var response LimitsResponse
 	err := s.doJSON(ctx, "GET", "/api/payouts/limits", nil, &response)
+	return response, err
+}
+
+func (s *Service) ListPayouts(ctx context.Context, status string, limit int) (QuoteListResponse, error) {
+	query := url.Values{}
+	if status != "" {
+		query.Set("status", status)
+	}
+	if limit > 0 {
+		query.Set("limit", strconv.Itoa(limit))
+	}
+
+	path := "/api/payouts"
+	if encoded := query.Encode(); encoded != "" {
+		path += "?" + encoded
+	}
+
+	var response QuoteListResponse
+	err := s.doJSON(ctx, "GET", path, nil, &response)
+	return response, err
+}
+
+func (s *Service) GetPayout(ctx context.Context, id string) (QuoteFetchResponse, error) {
+	var response QuoteFetchResponse
+	err := s.doJSON(ctx, "GET", "/api/payouts/"+url.PathEscape(id), nil, &response)
+	return response, err
+}
+
+func (s *Service) AccountLookup(ctx context.Context, input AccountLookupInput) (AccountLookupResponse, error) {
+	query := url.Values{}
+	query.Set("country", input.Country)
+	query.Set("bank_code", input.BankCode)
+	query.Set("account_number", input.AccountNumber)
+
+	path := "/api/payouts/account-lookup?" + query.Encode()
+	var response AccountLookupResponse
+	err := s.doJSON(ctx, "GET", path, nil, &response)
+	return response, err
+}
+
+func (s *Service) BanksByCountry(ctx context.Context, countryCode string) (BanksByCountryResponse, error) {
+	var response BanksByCountryResponse
+	err := s.doJSON(ctx, "GET", "/api/payouts/banks/"+url.PathEscape(countryCode), nil, &response)
 	return response, err
 }
 

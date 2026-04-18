@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 
 	"github.com/bitnob/bitnob-cli/internal/api"
 	"github.com/bitnob/bitnob-cli/internal/auth"
@@ -151,15 +152,34 @@ func (s *Service) CreateQuote(ctx context.Context, input CreateQuoteInput) (Quot
 	return response, err
 }
 
+func (s *Service) GetQuote(ctx context.Context, id string) (QuoteResponse, error) {
+	var response QuoteResponse
+	err := s.doJSON(ctx, "GET", "/api/trading/quotes/"+url.PathEscape(id), nil, &response)
+	return response, err
+}
+
 func (s *Service) CreateOrder(ctx context.Context, input CreateOrderInput) (OrderResponse, error) {
 	var response OrderResponse
 	err := s.doJSON(ctx, "POST", "/api/trading/orders", input, &response)
 	return response, err
 }
 
-func (s *Service) ListOrders(ctx context.Context) (OrdersListResponse, error) {
+func (s *Service) ListOrders(ctx context.Context, status string, limit int) (OrdersListResponse, error) {
+	query := url.Values{}
+	if status != "" {
+		query.Set("status", status)
+	}
+	if limit > 0 {
+		query.Set("limit", strconv.Itoa(limit))
+	}
+
+	path := "/api/trading/orders"
+	if encoded := query.Encode(); encoded != "" {
+		path += "?" + encoded
+	}
+
 	var response OrdersListResponse
-	err := s.doJSON(ctx, "GET", "/api/trading/orders", nil, &response)
+	err := s.doJSON(ctx, "GET", path, nil, &response)
 	return response, err
 }
 
@@ -169,9 +189,21 @@ func (s *Service) GetOrder(ctx context.Context, id string) (OrderResponse, error
 	return response, err
 }
 
+func (s *Service) CancelOrder(ctx context.Context, id string) (OrderResponse, error) {
+	var response OrderResponse
+	err := s.doJSON(ctx, "DELETE", "/api/trading/orders/"+url.PathEscape(id), nil, &response)
+	return response, err
+}
+
 func (s *Service) ListPrices(ctx context.Context) (PricesListResponse, error) {
 	var response PricesListResponse
 	err := s.doJSON(ctx, "GET", "/api/trading/prices", nil, &response)
+	return response, err
+}
+
+func (s *Service) GetPriceByPair(ctx context.Context, pair string) (PricesListResponse, error) {
+	var response PricesListResponse
+	err := s.doJSON(ctx, "GET", "/api/trading/prices/"+url.PathEscape(pair), nil, &response)
 	return response, err
 }
 

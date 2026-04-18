@@ -18,6 +18,8 @@ func newLightningCommand(printer output.Printer, application *app.App) *cobra.Co
 	cmd.AddCommand(
 		newLightningInvoicesCommand(printer, application),
 		newLightningDecodeCommand(printer, application),
+		newLightningPreviewCommand(printer, application),
+		newLightningPayCommand(printer, application),
 		newLightningPaymentsCommand(printer, application),
 	)
 
@@ -193,6 +195,13 @@ func newLightningPaymentsInitiateCommand(printer output.Printer, application *ap
 	return cmd
 }
 
+func newLightningPreviewCommand(printer output.Printer, application *app.App) *cobra.Command {
+	cmd := newLightningPaymentsInitiateCommand(printer, application)
+	cmd.Use = "preview"
+	cmd.Short = "Preview a Lightning payment"
+	return cmd
+}
+
 func newLightningPaymentsSendCommand(printer output.Printer, application *app.App) *cobra.Command {
 	var input lightning.SendPaymentInput
 
@@ -216,5 +225,12 @@ func newLightningPaymentsSendCommand(printer output.Printer, application *app.Ap
 	cmd.Flags().StringVar(&input.Request, "request", "", "BOLT11 payment request")
 	cmd.Flags().StringVar(&input.Reference, "reference", "", "Idempotency reference for the payment")
 	cmd.Flags().Int64Var(&input.MaxFee, "max-fee", 0, "Maximum routing fee in satoshis")
+	return cmd
+}
+
+func newLightningPayCommand(printer output.Printer, application *app.App) *cobra.Command {
+	cmd := newLightningPaymentsSendCommand(printer, application)
+	cmd.Use = "pay"
+	cmd.Short = "Pay a Lightning invoice"
 	return cmd
 }
