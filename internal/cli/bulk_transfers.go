@@ -95,7 +95,7 @@ func newBulkTransfersGetBatchCommand(printer output.Printer, application *app.Ap
 		Short: "Get batch by ID",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/bulk-transfers/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "bulk-transfers", args[0]), "")
 		},
 	}
 }
@@ -107,7 +107,7 @@ func newBulkTransfersConfirmBatchCommand(printer output.Printer, application *ap
 		Short: "Confirm batch",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/bulk-transfers/"+args[0]+"/confirm", data)
+			return runRawRequest(cmd.Context(), printer, application, "POST", rawAPIPath("api", "bulk-transfers", args[0], "confirm"), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -121,7 +121,7 @@ func newBulkTransfersRetryBatchCommand(printer output.Printer, application *app.
 		Short: "Retry failed items in batch",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/bulk-transfers/"+args[0]+"/retry", data)
+			return runRawRequest(cmd.Context(), printer, application, "POST", rawAPIPath("api", "bulk-transfers", args[0], "retry"), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -175,7 +175,7 @@ func newBulkTransfersSchedulesUpdateCommand(printer output.Printer, application 
 		Short: "Update schedule",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "PUT", "/api/bulk-transfers/schedules/"+args[0], data)
+			return runRawRequest(cmd.Context(), printer, application, "PUT", rawAPIPath("api", "bulk-transfers", "schedules", args[0]), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -188,7 +188,7 @@ func newBulkTransfersSchedulesCancelCommand(printer output.Printer, application 
 		Short: "Cancel schedule",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "DELETE", "/api/bulk-transfers/schedules/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "DELETE", rawAPIPath("api", "bulk-transfers", "schedules", args[0]), "")
 		},
 	}
 }
@@ -199,7 +199,7 @@ func newBulkTransfersSchedulesExecutionsCommand(printer output.Printer, applicat
 		Short: "List schedule executions",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/bulk-transfers/schedules/"+args[0]+"/executions", "")
+			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "bulk-transfers", "schedules", args[0], "executions"), "")
 		},
 	}
 }
@@ -220,7 +220,7 @@ func newBulkTransfersExecutionsRetryCommand(printer output.Printer, application 
 		Short: "Retry failed execution",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/bulk-transfers/executions/"+args[0]+"/retry", data)
+			return runRawRequest(cmd.Context(), printer, application, "POST", rawAPIPath("api", "bulk-transfers", "executions", args[0], "retry"), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
