@@ -14,7 +14,10 @@ import (
 	"time"
 )
 
-const SignatureHeader = "x-bitnob-signature"
+const (
+	SignatureHeader    = "x-bitnob-signature"
+	MaxWebhookBodySize = 1 << 20
+)
 
 type Service struct {
 	httpClient *http.Client
@@ -55,9 +58,13 @@ func Verify(secret string, body []byte, signature string) bool {
 
 func (s *Service) Handler(cfg Config, logger func(EventLog) error) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+		body, err := io.ReadAll(io.LimitReader(r.Body, MaxWebhookBodySize+1))
 		if err != nil {
 			http.Error(w, "read body", http.StatusBadRequest)
+			return
+		}
+		if len(body) > MaxWebhookBodySize {
+			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
 

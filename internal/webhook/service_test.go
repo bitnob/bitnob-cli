@@ -83,6 +83,22 @@ func TestHandlerRejectsInvalidSignature(t *testing.T) {
 	}
 }
 
+func TestHandlerRejectsOversizedBody(t *testing.T) {
+	service := NewService(nil)
+	handler := service.Handler(Config{Secret: "webhook_secret_test"}, nil)
+
+	body := bytes.Repeat([]byte("a"), MaxWebhookBodySize+1)
+	req := httptest.NewRequest(http.MethodPost, "/webhook", bytes.NewReader(body))
+	req.Header.Set(SignatureHeader, Sign("webhook_secret_test", body))
+	recorder := httptest.NewRecorder()
+
+	handler.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("unexpected status code: %d", recorder.Code)
+	}
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
