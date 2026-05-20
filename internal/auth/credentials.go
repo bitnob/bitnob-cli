@@ -55,6 +55,9 @@ func (s *CredentialsService) Login(ctx context.Context, profileName string, clie
 	if targetProfile == "" {
 		return LoginResult{}, fmt.Errorf("profile could not be determined from whoami response")
 	}
+	if err := ValidateProfileName(targetProfile); err != nil {
+		return LoginResult{}, err
+	}
 
 	cfg, err := s.configStore.Load(ctx)
 	if err != nil {

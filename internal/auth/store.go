@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/bitnob/bitnob-cli/internal/platform"
 )
@@ -24,6 +25,10 @@ type Credentials struct {
 }
 
 func (s *Store) SaveCredentials(ctx context.Context, profile string, credentials Credentials) error {
+	if err := ValidateProfileName(profile); err != nil {
+		return err
+	}
+
 	data, err := json.Marshal(credentials)
 	if err != nil {
 		return err
@@ -33,6 +38,10 @@ func (s *Store) SaveCredentials(ctx context.Context, profile string, credentials
 }
 
 func (s *Store) LoadCredentials(ctx context.Context, profile string) (Credentials, error) {
+	if err := ValidateProfileName(profile); err != nil {
+		return Credentials{}, err
+	}
+
 	data, err := s.secrets.Load(ctx, keyName(profile))
 	if err != nil {
 		return Credentials{}, err
@@ -47,7 +56,26 @@ func (s *Store) LoadCredentials(ctx context.Context, profile string) (Credential
 }
 
 func (s *Store) DeleteCredentials(ctx context.Context, profile string) error {
+	if err := ValidateProfileName(profile); err != nil {
+		return err
+	}
+
 	return s.secrets.Delete(ctx, keyName(profile))
+}
+
+func ValidateProfileName(profile string) error {
+	if strings.TrimSpace(profile) == "" {
+		return fmt.Errorf("profile name is required")
+	}
+
+	for _, r := range profile {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '.' || r == '_' || r == '-' {
+			continue
+		}
+		return fmt.Errorf("profile name %q contains invalid character %q; use letters, numbers, dots, underscores, or hyphens", profile, r)
+	}
+
+	return nil
 }
 
 func keyName(profile string) string {
