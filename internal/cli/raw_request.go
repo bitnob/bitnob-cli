@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/bitnob/bitnob-cli/internal/app"
 	"github.com/bitnob/bitnob-cli/internal/output"
@@ -24,4 +26,12 @@ func runRawRequest(ctx context.Context, printer output.Printer, application *app
 	}
 	_, err = printer.Stdout.Write(append(response, '\n'))
 	return err
+}
+
+func rawAPIPath(segments ...string) string {
+	escaped := make([]string, 0, len(segments))
+	for _, segment := range segments {
+		escaped = append(escaped, url.PathEscape(segment))
+	}
+	return "/" + strings.Join(escaped, "/")
 }

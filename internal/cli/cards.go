@@ -229,7 +229,7 @@ func newCardsBalanceCommand(printer output.Printer, application *app.App) *cobra
 		Short: "Fund or withdraw balance using v2 balance endpoint",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/cards/"+args[0]+"/balance", data)
+			return runRawRequest(cmd.Context(), printer, application, "POST", rawAPIPath("api", "cards", args[0], "balance"), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -243,7 +243,7 @@ func newCardsStatusCommand(printer output.Printer, application *app.App) *cobra.
 		Short: "Freeze or unfreeze card using v2 status endpoint",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "POST", "/api/cards/"+args[0]+"/status", data)
+			return runRawRequest(cmd.Context(), printer, application, "POST", rawAPIPath("api", "cards", args[0], "status"), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -367,7 +367,7 @@ func newCardsTransactionsCommand(printer output.Printer, application *app.App) *
 			Short: "List transactions for a card",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/"+args[0]+"/transactions", "")
+				return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "cards", args[0], "transactions"), "")
 			},
 		},
 		&cobra.Command{
@@ -375,7 +375,7 @@ func newCardsTransactionsCommand(printer output.Printer, application *app.App) *
 			Short: "Get single card transaction",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				return runRawRequest(cmd.Context(), printer, application, "GET", "/api/cards/"+args[0]+"/transactions/"+args[1], "")
+				return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "cards", args[0], "transactions", args[1]), "")
 			},
 		},
 	)

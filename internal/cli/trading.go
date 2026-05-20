@@ -348,7 +348,7 @@ func newTradingScheduledOrdersGetCommand(printer output.Printer, application *ap
 		Short: "Get scheduled order",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/trading/scheduled-orders/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "trading", "scheduled-orders", args[0]), "")
 		},
 	}
 }
@@ -360,7 +360,7 @@ func newTradingScheduledOrdersUpdateCommand(printer output.Printer, application 
 		Short: "Update scheduled order",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "PUT", "/api/trading/scheduled-orders/"+args[0], data)
+			return runRawRequest(cmd.Context(), printer, application, "PUT", rawAPIPath("api", "trading", "scheduled-orders", args[0]), data)
 		},
 	}
 	cmd.Flags().StringVar(&data, "data", "", "JSON request body")
@@ -373,7 +373,7 @@ func newTradingScheduledOrdersCancelCommand(printer output.Printer, application 
 		Short: "Cancel scheduled order",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "DELETE", "/api/trading/scheduled-orders/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "DELETE", rawAPIPath("api", "trading", "scheduled-orders", args[0]), "")
 		},
 	}
 }
@@ -384,7 +384,7 @@ func newTradingScheduledOrdersExecutionsCommand(printer output.Printer, applicat
 		Short: "List scheduled-order executions",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/trading/scheduled-orders/"+args[0]+"/executions", "")
+			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "trading", "scheduled-orders", args[0], "executions"), "")
 		},
 	}
 }
@@ -449,7 +449,7 @@ func newTradingTargetOrdersGetCommand(printer output.Printer, application *app.A
 		Short: "Get target order",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "GET", "/api/trading/target-orders/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "trading", "target-orders", args[0]), "")
 		},
 	}
 }
@@ -460,7 +460,7 @@ func newTradingTargetOrdersCancelCommand(printer output.Printer, application *ap
 		Short: "Cancel target order",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "DELETE", "/api/trading/target-orders/"+args[0], "")
+			return runRawRequest(cmd.Context(), printer, application, "DELETE", rawAPIPath("api", "trading", "target-orders", args[0]), "")
 		},
 	}
 }
