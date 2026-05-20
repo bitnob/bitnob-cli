@@ -238,6 +238,7 @@ func TestClient_Do(t *testing.T) {
 			// Create client with test server URL
 			client := NewClientWithOptions(Options{
 				BaseURL: server.URL,
+				Sleep:   func(_ context.Context, _ time.Duration) error { return nil },
 			})
 			ctx := context.Background()
 

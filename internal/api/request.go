@@ -53,7 +53,7 @@ func (c *Client) Do(ctx context.Context, method string, path string, clientID st
 			return nil, apiErr
 		}
 
-		if attempt == c.retryMaxAttempts {
+		if !isRetryableMethod(method) || attempt == c.retryMaxAttempts {
 			return nil, apiErr
 		}
 
@@ -191,6 +191,15 @@ func isTransientError(err *Error) bool {
 		return true
 	}
 	return false
+}
+
+func isRetryableMethod(method string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions:
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *Client) retryDelay(attempt int, err *Error) time.Duration {

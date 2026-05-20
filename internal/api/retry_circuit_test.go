@@ -66,6 +66,49 @@ func TestClientDo_RetriesTransientErrorAndSucceeds(t *testing.T) {
 	}
 }
 
+func TestClientDo_DoesNotRetryMutatingMethods(t *testing.T) {
+	t.Parallel()
+
+	methods := []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete}
+	for _, method := range methods {
+		method := method
+		t.Run(method, func(t *testing.T) {
+			t.Parallel()
+
+			var calls int32
+			httpClient := &http.Client{
+				Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+					atomic.AddInt32(&calls, 1)
+					return &http.Response{
+						StatusCode: http.StatusInternalServerError,
+						Status:     "500 Internal Server Error",
+						Body:       io.NopCloser(strings.NewReader(`{"error":"temporary failure"}`)),
+						Header:     make(http.Header),
+						Request:    req,
+					}, nil
+				}),
+			}
+
+			client := NewClientWithOptions(Options{
+				BaseURL:                 "https://api.test",
+				HTTPClient:              httpClient,
+				RetryMaxAttempts:        3,
+				CircuitFailureThreshold: 10,
+				CircuitOpenDuration:     time.Second,
+				Sleep:                   func(_ context.Context, _ time.Duration) error { return nil },
+			})
+
+			_, err := client.Do(context.Background(), method, "/api/test", "client", "secret", []byte(`{"ok":true}`))
+			if err == nil {
+				t.Fatal("expected transient error")
+			}
+			if got := atomic.LoadInt32(&calls); got != 1 {
+				t.Fatalf("unexpected call count: got=%d want=1", got)
+			}
+		})
+	}
+}
+
 func TestClientDo_CircuitBreakerOpensAfterFailures(t *testing.T) {
 	t.Parallel()
 
