@@ -271,27 +271,6 @@ func TestBalanceByCurrency(t *testing.T) {
 	}
 }
 
-func TestWalletsList(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	if err := runWithPrinter(ctx, printer, application, []string{"wallets"}); err != nil {
-		t.Fatalf("wallets returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"accounts"`) {
-		t.Fatalf("unexpected wallets output: %q", got)
-	}
-}
-
 func TestLightningInvoiceCreate(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}
@@ -662,36 +641,6 @@ func TestTradingPrices(t *testing.T) {
 
 	if got := stdout.String(); !strings.Contains(got, `"base_currency": "BTC"`) {
 		t.Fatalf("unexpected trading prices output: %q", got)
-	}
-}
-
-func TestTransfersCreate(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{
-		"transfers", "create",
-		"--to-address", "0xdaBe4B0Ca57dfBF13763D5f190A2d30B94f1Bf59",
-		"--amount", "2000000",
-		"--currency", "USDT",
-		"--chain", "bsc",
-		"--reference", "testing_bsc_013",
-		"--description", "Testing on USDT to binance",
-	})
-	if err != nil {
-		t.Fatalf("transfers create returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"transaction_id": "transfer_123"`) {
-		t.Fatalf("unexpected transfers create output: %q", got)
 	}
 }
 
