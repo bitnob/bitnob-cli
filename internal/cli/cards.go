@@ -303,21 +303,12 @@ func newCardsUnfreezeCommand(printer output.Printer, application *app.App) *cobr
 
 func newCardsSpendingLimitsCommand(printer output.Printer, application *app.App) *cobra.Command {
 	var input cards.SpendingLimits
-	var allowedCategories []string
-	var blockedCategories []string
-	var allowedMerchants []string
-	var blockedMerchants []string
 
 	cmd := &cobra.Command{
 		Use:   "spending-limits <card-id>",
 		Short: "Update spending limits for a card",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			input.AllowedCategories = allowedCategories
-			input.BlockedCategories = blockedCategories
-			input.AllowedMerchants = allowedMerchants
-			input.BlockedMerchants = blockedMerchants
-
 			response, err := application.CardsService.UpdateSpendingLimits(cmd.Context(), args[0], input)
 			if err != nil {
 				return err
@@ -326,14 +317,12 @@ func newCardsSpendingLimitsCommand(printer output.Printer, application *app.App)
 		},
 	}
 
-	cmd.Flags().StringVar(&input.SingleTransaction, "single-transaction", "", "Single transaction spending limit")
-	cmd.Flags().StringVar(&input.Daily, "daily", "", "Daily spending limit")
-	cmd.Flags().StringVar(&input.Weekly, "weekly", "", "Weekly spending limit")
-	cmd.Flags().StringVar(&input.Monthly, "monthly", "", "Monthly spending limit")
-	cmd.Flags().StringSliceVar(&allowedCategories, "allowed-categories", nil, "Allowed merchant categories")
-	cmd.Flags().StringSliceVar(&blockedCategories, "blocked-categories", nil, "Blocked merchant categories")
-	cmd.Flags().StringSliceVar(&allowedMerchants, "allowed-merchants", nil, "Allowed merchant IDs")
-	cmd.Flags().StringSliceVar(&blockedMerchants, "blocked-merchants", nil, "Blocked merchant IDs")
+	cmd.Flags().Int64Var(&input.TransactionLimit, "transaction-limit", 0, "Single transaction spending limit in base units")
+	cmd.Flags().Int64Var(&input.DailyLimit, "daily-limit", 0, "Daily spending limit in base units")
+	cmd.Flags().Int64Var(&input.WeeklyLimit, "weekly-limit", 0, "Weekly spending limit in base units")
+	cmd.Flags().Int64Var(&input.MonthlyLimit, "monthly-limit", 0, "Monthly spending limit in base units")
+	cmd.Flags().Int64Var(&input.YearlyLimit, "yearly-limit", 0, "Yearly spending limit in base units")
+	cmd.Flags().Int64Var(&input.AllTimeLimit, "all-time-limit", 0, "All-time spending limit in base units")
 	return cmd
 }
 
