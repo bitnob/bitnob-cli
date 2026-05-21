@@ -1092,28 +1092,6 @@ func TestBeneficiariesUpdate(t *testing.T) {
 	}
 }
 
-func TestBeneficiariesDelete(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{"beneficiaries", "delete", "beneficiary_123"})
-	if err != nil {
-		t.Fatalf("beneficiaries delete returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"success": true`) {
-		t.Fatalf("unexpected beneficiaries delete output: %q", got)
-	}
-}
-
 func TestCardsCreate(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}

@@ -20,7 +20,6 @@ func newBeneficiariesCommand(printer output.Printer, application *app.App) *cobr
 		newBeneficiariesGetCommand(printer, application),
 		newBeneficiariesCreateCommand(printer, application),
 		newBeneficiariesUpdateCommand(printer, application),
-		newBeneficiariesDeleteCommand(printer, application),
 	)
 
 	return cmd
@@ -131,19 +130,4 @@ func newBeneficiariesUpdateCommand(printer output.Printer, application *app.App)
 	cmd.Flags().StringVar(&input.Destination.BankCode, "bank-code", "", "Bank code")
 	cmd.Flags().BoolVar(&blacklist, "blacklisted", false, "Set beneficiary blacklisted status")
 	return cmd
-}
-
-func newBeneficiariesDeleteCommand(printer output.Printer, application *app.App) *cobra.Command {
-	return &cobra.Command{
-		Use:   "delete <id>",
-		Short: "Delete a beneficiary",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			response, err := application.BeneficiariesService.Delete(cmd.Context(), args[0])
-			if err != nil {
-				return err
-			}
-			return printer.PrintJSON(response)
-		},
-	}
 }
