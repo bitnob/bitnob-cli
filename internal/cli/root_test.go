@@ -1230,16 +1230,17 @@ func TestCardsSpendingLimits(t *testing.T) {
 	stdout.Reset()
 	err := runWithPrinter(ctx, printer, application, []string{
 		"cards", "spending-limits", "card_123",
-		"--single-transaction", "2000.00",
-		"--daily", "10000.00",
-		"--allowed-categories", "travel,software",
-		"--blocked-merchants", "merchant_123",
+		"--transaction-limit", "200000",
+		"--daily-limit", "1000000",
+		"--weekly-limit", "5000000",
+		"--monthly-limit", "20000000",
+		"--yearly-limit", "100000000",
 	})
 	if err != nil {
 		t.Fatalf("cards spending-limits returned error: %v", err)
 	}
 
-	if got := stdout.String(); !strings.Contains(got, `"allowed_categories": [`) {
+	if got := stdout.String(); !strings.Contains(got, `"transaction_limit": 200000`) {
 		t.Fatalf("unexpected cards spending-limits output: %q", got)
 	}
 }
@@ -2113,7 +2114,7 @@ func newTestApp(t *testing.T) *app.App {
 			if err != nil {
 				return nil, err
 			}
-			if !strings.Contains(string(body), `"allowed_categories":["travel","software"]`) || !strings.Contains(string(body), `"blocked_merchants":["merchant_123"]`) {
+			if !strings.Contains(string(body), `"spending_limits":{"transaction_limit":200000,"daily_limit":1000000,"weekly_limit":5000000,"monthly_limit":20000000,"yearly_limit":100000000}`) {
 				return &http.Response{
 					StatusCode: http.StatusBadRequest,
 					Status:     "400 Bad Request",
@@ -2132,10 +2133,11 @@ func newTestApp(t *testing.T) *app.App {
 						"card_id": "card_123",
 						"operation": "update_spending_limits",
 						"spending_limits": {
-							"single_transaction": "2000.00",
-							"daily": "10000.00",
-							"allowed_categories": ["travel", "software"],
-							"blocked_merchants": ["merchant_123"]
+							"transaction_limit": 200000,
+							"daily_limit": 1000000,
+							"weekly_limit": 5000000,
+							"monthly_limit": 20000000,
+							"yearly_limit": 100000000
 						},
 						"updated_at": "2024-01-15T15:00:00Z"
 					}
