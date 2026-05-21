@@ -22,8 +22,6 @@ func newCustomersCommand(printer output.Printer, application *app.App) *cobra.Co
 		newCustomersGetCommand(printer, application),
 		newCustomersCreateCommand(printer, application),
 		newCustomersUpdateCommand(printer, application),
-		newCustomersDeleteCommand(printer, application),
-		newCustomersBlacklistCommand(printer, application),
 	)
 
 	return cmd
@@ -163,41 +161,5 @@ func newCustomersUpdateCommand(printer output.Printer, application *app.App) *co
 	cmd.Flags().StringVar(&input.LastName, "last-name", "", "Customer last name")
 	cmd.Flags().StringVar(&input.Phone, "phone", "", "Customer phone")
 	cmd.Flags().StringVar(&input.Email, "email", "", "Customer email")
-	return cmd
-}
-
-func newCustomersDeleteCommand(printer output.Printer, application *app.App) *cobra.Command {
-	return &cobra.Command{
-		Use:   "delete <id>",
-		Short: "Delete a customer",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			response, err := application.CustomersService.Delete(cmd.Context(), args[0])
-			if err != nil {
-				return err
-			}
-			_, err = printer.Stdout.Write(append(response, '\n'))
-			return err
-		},
-	}
-}
-
-func newCustomersBlacklistCommand(printer output.Printer, application *app.App) *cobra.Command {
-	var blacklist bool
-
-	cmd := &cobra.Command{
-		Use:   "blacklist <id>",
-		Short: "Blacklist or whitelist a customer",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			response, err := application.CustomersService.Blacklist(cmd.Context(), args[0], blacklist)
-			if err != nil {
-				return err
-			}
-			return printer.PrintJSON(response)
-		},
-	}
-
-	cmd.Flags().BoolVar(&blacklist, "blacklist", true, "Set to true to blacklist, or false to remove from blacklist")
 	return cmd
 }

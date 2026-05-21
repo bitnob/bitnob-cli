@@ -29,14 +29,23 @@ type Address struct {
 }
 
 type SpendingLimits struct {
-	SingleTransaction string   `json:"single_transaction,omitempty"`
-	Daily             string   `json:"daily,omitempty"`
-	Weekly            string   `json:"weekly,omitempty"`
-	Monthly           string   `json:"monthly,omitempty"`
-	AllowedCategories []string `json:"allowed_categories,omitempty"`
-	BlockedCategories []string `json:"blocked_categories,omitempty"`
-	AllowedMerchants  []string `json:"allowed_merchants,omitempty"`
-	BlockedMerchants  []string `json:"blocked_merchants,omitempty"`
+	TransactionLimit int64 `json:"transaction_limit,omitempty"`
+	DailyLimit       int64 `json:"daily_limit,omitempty"`
+	WeeklyLimit      int64 `json:"weekly_limit,omitempty"`
+	MonthlyLimit     int64 `json:"monthly_limit,omitempty"`
+	YearlyLimit      int64 `json:"yearly_limit,omitempty"`
+	AllTimeLimit     int64 `json:"all_time_limit,omitempty"`
+}
+
+type CreateSpendingLimits struct {
+	SingleTransaction string `json:"single_transaction,omitempty"`
+	Daily             string `json:"daily,omitempty"`
+	Weekly            string `json:"weekly,omitempty"`
+	Monthly           string `json:"monthly,omitempty"`
+}
+
+type SpendLimitsInput struct {
+	SpendingLimits SpendingLimits `json:"spending_limits"`
 }
 
 type CurrentSpending struct {
@@ -176,15 +185,15 @@ type SpendingLimitsUpdateResponse struct {
 }
 
 type CreateInput struct {
-	CustomerID     string         `json:"customer_id"`
-	Name           string         `json:"name"`
-	CardType       string         `json:"card_type"`
-	CardBrand      string         `json:"card_brand"`
-	Currency       string         `json:"currency"`
-	BillingAddress Address        `json:"billing_address"`
-	SpendingLimits SpendingLimits `json:"spending_limits,omitempty"`
-	Metadata       map[string]any `json:"metadata,omitempty"`
-	CreatedBy      string         `json:"created_by,omitempty"`
+	CustomerID     string               `json:"customer_id"`
+	Name           string               `json:"name"`
+	CardType       string               `json:"card_type"`
+	CardBrand      string               `json:"card_brand"`
+	Currency       string               `json:"currency"`
+	BillingAddress Address              `json:"billing_address"`
+	SpendingLimits CreateSpendingLimits `json:"spending_limits,omitempty"`
+	Metadata       map[string]any       `json:"metadata,omitempty"`
+	CreatedBy      string               `json:"created_by,omitempty"`
 }
 
 type FundWithdrawInput struct {
@@ -305,7 +314,7 @@ func (s *Service) Terminate(ctx context.Context, cardID string, input ReasonInpu
 
 func (s *Service) UpdateSpendingLimits(ctx context.Context, cardID string, input SpendingLimits) (SpendingLimitsUpdateResponse, error) {
 	var response SpendingLimitsUpdateResponse
-	err := s.doJSON(ctx, "PUT", "/api/cards/"+url.PathEscape(cardID)+"/spend-limits", input, &response)
+	err := s.doJSON(ctx, "PUT", "/api/cards/"+url.PathEscape(cardID)+"/spend-limits", SpendLimitsInput{SpendingLimits: input}, &response)
 	return response, err
 }
 

@@ -153,7 +153,7 @@ func (s *Service) Validate(ctx context.Context, input ValidateInput) (ValidateRe
 
 func (s *Service) SupportedChains(ctx context.Context) (SupportedChainsResponse, error) {
 	var response SupportedChainsResponse
-	err := s.doJSON(ctx, "GET", "/api/addresses/supported-chains", nil, &response)
+	err := s.doJSON(ctx, "GET", "/api/stablecoins/supported-chains", nil, &response)
 	return response, err
 }
 

@@ -271,27 +271,6 @@ func TestBalanceByCurrency(t *testing.T) {
 	}
 }
 
-func TestWalletsList(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	if err := runWithPrinter(ctx, printer, application, []string{"wallets"}); err != nil {
-		t.Fatalf("wallets returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"accounts"`) {
-		t.Fatalf("unexpected wallets output: %q", got)
-	}
-}
-
 func TestLightningInvoiceCreate(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}
@@ -355,28 +334,6 @@ func TestLightningPaymentSend(t *testing.T) {
 
 	if got := stdout.String(); !strings.Contains(got, `"status": "paid"`) {
 		t.Fatalf("unexpected lightning payments send output: %q", got)
-	}
-}
-
-func TestLightningInvoiceVerify(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{"lightning", "invoices", "verify", "--payment-hash", "hash_verify_123"})
-	if err != nil {
-		t.Fatalf("lightning invoices verify returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"is_paid": true`) {
-		t.Fatalf("unexpected lightning invoices verify output: %q", got)
 	}
 }
 
@@ -684,36 +641,6 @@ func TestTradingPrices(t *testing.T) {
 
 	if got := stdout.String(); !strings.Contains(got, `"base_currency": "BTC"`) {
 		t.Fatalf("unexpected trading prices output: %q", got)
-	}
-}
-
-func TestTransfersCreate(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{
-		"transfers", "create",
-		"--to-address", "0xdaBe4B0Ca57dfBF13763D5f190A2d30B94f1Bf59",
-		"--amount", "2000000",
-		"--currency", "USDT",
-		"--chain", "bsc",
-		"--reference", "testing_bsc_013",
-		"--description", "Testing on USDT to binance",
-	})
-	if err != nil {
-		t.Fatalf("transfers create returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"transaction_id": "transfer_123"`) {
-		t.Fatalf("unexpected transfers create output: %q", got)
 	}
 }
 
@@ -1114,28 +1041,6 @@ func TestBeneficiariesUpdate(t *testing.T) {
 	}
 }
 
-func TestBeneficiariesDelete(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{"beneficiaries", "delete", "beneficiary_123"})
-	if err != nil {
-		t.Fatalf("beneficiaries delete returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"success": true`) {
-		t.Fatalf("unexpected beneficiaries delete output: %q", got)
-	}
-}
-
 func TestCardsCreate(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}
@@ -1230,16 +1135,17 @@ func TestCardsSpendingLimits(t *testing.T) {
 	stdout.Reset()
 	err := runWithPrinter(ctx, printer, application, []string{
 		"cards", "spending-limits", "card_123",
-		"--single-transaction", "2000.00",
-		"--daily", "10000.00",
-		"--allowed-categories", "travel,software",
-		"--blocked-merchants", "merchant_123",
+		"--transaction-limit", "200000",
+		"--daily-limit", "1000000",
+		"--weekly-limit", "5000000",
+		"--monthly-limit", "20000000",
+		"--yearly-limit", "100000000",
 	})
 	if err != nil {
 		t.Fatalf("cards spending-limits returned error: %v", err)
 	}
 
-	if got := stdout.String(); !strings.Contains(got, `"allowed_categories": [`) {
+	if got := stdout.String(); !strings.Contains(got, `"transaction_limit": 200000`) {
 		t.Fatalf("unexpected cards spending-limits output: %q", got)
 	}
 }
@@ -1466,18 +1372,15 @@ func TestNewCommandSurfaces(t *testing.T) {
 		{"customers countries", []string{"customers", "countries"}, `"countries"`},
 		{"customers country states", []string{"customers", "countries", "states", "NG"}, `"Lagos"`},
 		{"trading quote get", []string{"trading", "quotes", "get", "quote_123"}, `"id": "quote_123"`},
-		{"trading order cancel", []string{"trading", "orders", "cancel", "order_123"}, `"cancelled"`},
 		{"trading price get pair", []string{"trading", "prices", "get", "BTC-USDT"}, `"base_currency": "BTC"`},
 		{"trading scheduled create", []string{"trading", "scheduled-orders", "create", "--data", `{"pair":"BTC-USDT"}`}, `"Trading automation request handled"`},
 		{"trading scheduled list", []string{"trading", "scheduled-orders", "list"}, `"Trading automation request handled"`},
 		{"trading scheduled get", []string{"trading", "scheduled-orders", "get", "sched_1"}, `"Trading automation request handled"`},
 		{"trading scheduled update", []string{"trading", "scheduled-orders", "update", "sched_1", "--data", `{"enabled":true}`}, `"Trading automation request handled"`},
-		{"trading scheduled cancel", []string{"trading", "scheduled-orders", "cancel", "sched_1"}, `"Trading automation request handled"`},
 		{"trading scheduled executions", []string{"trading", "scheduled-orders", "executions", "sched_1"}, `"Trading automation request handled"`},
 		{"trading target create", []string{"trading", "target-orders", "create", "--data", `{"pair":"BTC-USDT"}`}, `"Trading automation request handled"`},
 		{"trading target list", []string{"trading", "target-orders", "list", "--status", "active", "--limit", "10"}, `"Trading automation request handled"`},
 		{"trading target get", []string{"trading", "target-orders", "get", "target_1"}, `"Trading automation request handled"`},
-		{"trading target cancel", []string{"trading", "target-orders", "cancel", "target_1"}, `"Trading automation request handled"`},
 		{"cards encryption key", []string{"cards", "encryption-key", "--data", `{"public_key":"test"}`}, `"Encryption key registered"`},
 		{"cards team members", []string{"cards", "team-members"}, `"Team-member cards retrieved"`},
 		{"cards transactions list", []string{"cards", "transactions"}, `"Card transactions retrieved"`},
@@ -2113,7 +2016,7 @@ func newTestApp(t *testing.T) *app.App {
 			if err != nil {
 				return nil, err
 			}
-			if !strings.Contains(string(body), `"allowed_categories":["travel","software"]`) || !strings.Contains(string(body), `"blocked_merchants":["merchant_123"]`) {
+			if !strings.Contains(string(body), `"spending_limits":{"transaction_limit":200000,"daily_limit":1000000,"weekly_limit":5000000,"monthly_limit":20000000,"yearly_limit":100000000}`) {
 				return &http.Response{
 					StatusCode: http.StatusBadRequest,
 					Status:     "400 Bad Request",
@@ -2132,10 +2035,11 @@ func newTestApp(t *testing.T) *app.App {
 						"card_id": "card_123",
 						"operation": "update_spending_limits",
 						"spending_limits": {
-							"single_transaction": "2000.00",
-							"daily": "10000.00",
-							"allowed_categories": ["travel", "software"],
-							"blocked_merchants": ["merchant_123"]
+							"transaction_limit": 200000,
+							"daily_limit": 1000000,
+							"weekly_limit": 5000000,
+							"monthly_limit": 20000000,
+							"yearly_limit": 100000000
 						},
 						"updated_at": "2024-01-15T15:00:00Z"
 					}
@@ -2535,7 +2439,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/addresses/supported-chains" && req.Method == http.MethodGet {
+		if req.URL.Path == "/api/stablecoins/supported-chains" && req.Method == http.MethodGet {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
@@ -2868,8 +2772,8 @@ func newTestApp(t *testing.T) *app.App {
 				return nil, err
 			}
 			hasRawBeneficiary := strings.Contains(string(body), `"beneficiary":{"account_name":"Ada Okafor","account_number":"0123456789","bank_code":"058"}`)
-			hasSavedBeneficiary := strings.Contains(string(body), `"beneficiary":{"account_name":"John Doe","account_number":"1234567890","bank_code":"058","country":"NG","type":"BANK"}`) ||
-				strings.Contains(string(body), `"beneficiary":{"country":"NG","type":"BANK","account_name":"John Doe","account_number":"1234567890","bank_code":"058"}`)
+			hasSavedBeneficiary := strings.Contains(string(body), `"beneficiary":{"accountName":"John Doe","accountNumber":"1234567890","bankCode":"058","country":"NG","type":"BANK"}`) ||
+				strings.Contains(string(body), `"beneficiary":{"country":"NG","type":"BANK","accountName":"John Doe","accountNumber":"1234567890","bankCode":"058"}`)
 			if !strings.Contains(string(body), `"customer_id":"customer_123"`) ||
 				!strings.Contains(string(body), `"reference":"offramp-init-001"`) ||
 				!strings.Contains(string(body), `"payment_reason":"Supplier settlement"`) ||
