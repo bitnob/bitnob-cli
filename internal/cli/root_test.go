@@ -2772,8 +2772,8 @@ func newTestApp(t *testing.T) *app.App {
 				return nil, err
 			}
 			hasRawBeneficiary := strings.Contains(string(body), `"beneficiary":{"account_name":"Ada Okafor","account_number":"0123456789","bank_code":"058"}`)
-			hasSavedBeneficiary := strings.Contains(string(body), `"beneficiary":{"account_name":"John Doe","account_number":"1234567890","bank_code":"058","country":"NG","type":"BANK"}`) ||
-				strings.Contains(string(body), `"beneficiary":{"country":"NG","type":"BANK","account_name":"John Doe","account_number":"1234567890","bank_code":"058"}`)
+			hasSavedBeneficiary := strings.Contains(string(body), `"beneficiary":{"accountName":"John Doe","accountNumber":"1234567890","bankCode":"058","country":"NG","type":"BANK"}`) ||
+				strings.Contains(string(body), `"beneficiary":{"country":"NG","type":"BANK","accountName":"John Doe","accountNumber":"1234567890","bankCode":"058"}`)
 			if !strings.Contains(string(body), `"customer_id":"customer_123"`) ||
 				!strings.Contains(string(body), `"reference":"offramp-init-001"`) ||
 				!strings.Contains(string(body), `"payment_reason":"Supplier settlement"`) ||

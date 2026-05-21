@@ -205,11 +205,11 @@ func newPayoutsInitializeCommand(printer output.Printer, application *app.App) *
 					return err
 				}
 				input.Beneficiary = map[string]any{
-					"type":           strings.ToUpper(strings.TrimSpace(beneficiary.Data.Type)),
-					"country":        strings.ToUpper(strings.TrimSpace(beneficiaryCountry)),
-					"account_name":   beneficiary.Data.Destination.AccountName,
-					"account_number": beneficiary.Data.Destination.AccountNumber,
-					"bank_code":      beneficiary.Data.Destination.BankCode,
+					"type":          strings.ToUpper(strings.TrimSpace(beneficiary.Data.Type)),
+					"country":       strings.ToUpper(strings.TrimSpace(beneficiaryCountry)),
+					"accountName":   beneficiary.Data.Destination.AccountName,
+					"accountNumber": beneficiary.Data.Destination.AccountNumber,
+					"bankCode":      beneficiary.Data.Destination.BankCode,
 				}
 				if input.Beneficiary["country"] == "" {
 					return fmt.Errorf("beneficiary-country is required when using beneficiary-id")
