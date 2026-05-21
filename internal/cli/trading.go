@@ -168,7 +168,6 @@ func newTradingOrdersCommand(printer output.Printer, application *app.App) *cobr
 		newTradingOrdersCreateCommand(printer, application),
 		newTradingOrdersListCommand(printer, application),
 		newTradingOrdersGetCommand(printer, application),
-		newTradingOrdersCancelCommand(printer, application),
 	)
 	return cmd
 }
@@ -272,21 +271,6 @@ func newTradingQuotesGetCommand(printer output.Printer, application *app.App) *c
 	}
 }
 
-func newTradingOrdersCancelCommand(printer output.Printer, application *app.App) *cobra.Command {
-	return &cobra.Command{
-		Use:   "cancel <id>",
-		Short: "Cancel a trading order by ID",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			response, err := application.TradingService.CancelOrder(cmd.Context(), args[0])
-			if err != nil {
-				return err
-			}
-			return printer.PrintJSON(response)
-		},
-	}
-}
-
 func newTradingPricesGetCommand(printer output.Printer, application *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <pair>",
@@ -313,7 +297,6 @@ func newTradingScheduledOrdersCommand(printer output.Printer, application *app.A
 		newTradingScheduledOrdersListCommand(printer, application),
 		newTradingScheduledOrdersGetCommand(printer, application),
 		newTradingScheduledOrdersUpdateCommand(printer, application),
-		newTradingScheduledOrdersCancelCommand(printer, application),
 		newTradingScheduledOrdersExecutionsCommand(printer, application),
 	)
 	return cmd
@@ -367,17 +350,6 @@ func newTradingScheduledOrdersUpdateCommand(printer output.Printer, application 
 	return cmd
 }
 
-func newTradingScheduledOrdersCancelCommand(printer output.Printer, application *app.App) *cobra.Command {
-	return &cobra.Command{
-		Use:   "cancel <id>",
-		Short: "Cancel scheduled order",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "DELETE", rawAPIPath("api", "trading", "scheduled-orders", args[0]), "")
-		},
-	}
-}
-
 func newTradingScheduledOrdersExecutionsCommand(printer output.Printer, application *app.App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "executions <id>",
@@ -398,7 +370,6 @@ func newTradingTargetOrdersCommand(printer output.Printer, application *app.App)
 		newTradingTargetOrdersCreateCommand(printer, application),
 		newTradingTargetOrdersListCommand(printer, application),
 		newTradingTargetOrdersGetCommand(printer, application),
-		newTradingTargetOrdersCancelCommand(printer, application),
 	)
 	return cmd
 }
@@ -450,17 +421,6 @@ func newTradingTargetOrdersGetCommand(printer output.Printer, application *app.A
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRawRequest(cmd.Context(), printer, application, "GET", rawAPIPath("api", "trading", "target-orders", args[0]), "")
-		},
-	}
-}
-
-func newTradingTargetOrdersCancelCommand(printer output.Printer, application *app.App) *cobra.Command {
-	return &cobra.Command{
-		Use:   "cancel <id>",
-		Short: "Cancel target order",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRawRequest(cmd.Context(), printer, application, "DELETE", rawAPIPath("api", "trading", "target-orders", args[0]), "")
 		},
 	}
 }
