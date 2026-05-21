@@ -2108,7 +2108,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/cards/card_123/spending-limits" && req.Method == http.MethodPut {
+		if req.URL.Path == "/api/cards/card_123/spend-limits" && req.Method == http.MethodPut {
 			body, err := io.ReadAll(req.Body)
 			if err != nil {
 				return nil, err

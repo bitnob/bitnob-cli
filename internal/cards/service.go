@@ -305,7 +305,7 @@ func (s *Service) Terminate(ctx context.Context, cardID string, input ReasonInpu
 
 func (s *Service) UpdateSpendingLimits(ctx context.Context, cardID string, input SpendingLimits) (SpendingLimitsUpdateResponse, error) {
 	var response SpendingLimitsUpdateResponse
-	err := s.doJSON(ctx, "PUT", "/api/cards/"+url.PathEscape(cardID)+"/spending-limits", input, &response)
+	err := s.doJSON(ctx, "PUT", "/api/cards/"+url.PathEscape(cardID)+"/spend-limits", input, &response)
 	return response, err
 }
 
