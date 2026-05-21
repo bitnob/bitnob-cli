@@ -36,7 +36,6 @@ func newLightningInvoicesCommand(printer output.Printer, application *app.App) *
 		newLightningInvoicesCreateCommand(printer, application),
 		newLightningInvoicesGetCommand(printer, application),
 		newLightningInvoicesListCommand(printer, application),
-		newLightningInvoicesVerifyCommand(printer, application),
 	)
 
 	return cmd
@@ -109,29 +108,6 @@ func newLightningInvoicesListCommand(printer output.Printer, application *app.Ap
 	cmd.Flags().IntVar(&pageSize, "page-size", 0, "Number of invoices per page")
 	cmd.Flags().StringVar(&status, "status", "", "Invoice status filter")
 	cmd.Flags().StringVar(&direction, "direction", "", "Invoice direction filter")
-	return cmd
-}
-
-func newLightningInvoicesVerifyCommand(printer output.Printer, application *app.App) *cobra.Command {
-	var input lightning.VerifyInvoiceInput
-
-	cmd := &cobra.Command{
-		Use:   "verify",
-		Short: "Verify a Lightning invoice payment by payment hash",
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			if input.PaymentHash == "" {
-				return fmt.Errorf("payment-hash is required")
-			}
-
-			response, err := application.LightningService.VerifyInvoice(cmd.Context(), input)
-			if err != nil {
-				return err
-			}
-			return printer.PrintJSON(response)
-		},
-	}
-
-	cmd.Flags().StringVar(&input.PaymentHash, "payment-hash", "", "Lightning payment hash to verify")
 	return cmd
 }
 

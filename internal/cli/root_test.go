@@ -358,28 +358,6 @@ func TestLightningPaymentSend(t *testing.T) {
 	}
 }
 
-func TestLightningInvoiceVerify(t *testing.T) {
-	application := newTestApp(t)
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-	printer := output.New(stdout, stderr)
-	ctx := context.Background()
-
-	if err := runWithPrinter(ctx, printer, application, []string{"login", "--client-id", "client_test_1234", "--secret-key", "secret_test_12345678"}); err != nil {
-		t.Fatalf("login returned error: %v", err)
-	}
-
-	stdout.Reset()
-	err := runWithPrinter(ctx, printer, application, []string{"lightning", "invoices", "verify", "--payment-hash", "hash_verify_123"})
-	if err != nil {
-		t.Fatalf("lightning invoices verify returned error: %v", err)
-	}
-
-	if got := stdout.String(); !strings.Contains(got, `"is_paid": true`) {
-		t.Fatalf("unexpected lightning invoices verify output: %q", got)
-	}
-}
-
 func TestAddressesList(t *testing.T) {
 	application := newTestApp(t)
 	stdout := &bytes.Buffer{}
