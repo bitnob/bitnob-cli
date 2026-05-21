@@ -2535,7 +2535,7 @@ func newTestApp(t *testing.T) *app.App {
 				Request: req,
 			}, nil
 		}
-		if req.URL.Path == "/api/addresses/supported-chains" && req.Method == http.MethodGet {
+		if req.URL.Path == "/api/stablecoins/supported-chains" && req.Method == http.MethodGet {
 			return &http.Response{
 				StatusCode: http.StatusOK,
 				Status:     "200 OK",
